@@ -147,8 +147,8 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
 const CTA_BLOCK = `
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <div style="width:100%;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);padding:40px 48px;box-sizing:border-box;text-align:center;font-family:'Inter',sans-serif;">
-  <h3 style="font-size:22px;font-weight:600;color:#0a2540;margin:0 0 10px;line-height:1.3;font-family:inherit;">Book a free consultation</h3>
-  <p style="font-size:15px;color:#0a2540;margin:0 0 24px;max-width:480px;display:inline-block;line-height:1.6;font-family:inherit;">Find out how ThingLink can transform learning in your organisation. Speak with a specialist today.</p>
+  <h3 style="font-size:22px;font-weight:600;color:#ffffff;margin:0 0 10px;line-height:1.3;font-family:inherit;">Book a free consultation</h3>
+  <p style="font-size:15px;color:#ffffff;margin:0 0 24px;max-width:480px;display:inline-block;line-height:1.6;font-family:inherit;">Find out how ThingLink can transform learning in your organisation. Speak with a specialist today.</p>
   <br>
   <a href="https://www.thinglink.com/demo" style="display:inline-block;background:#0a2540;color:#fff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:50px;text-decoration:none;font-family:inherit;">Book a free consultation →</a>
 </div>`
