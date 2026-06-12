@@ -59,6 +59,34 @@ function CopyButton({ getText }: { getText: () => string }) {
   )
 }
 
+function MicButton({ onResult, append = false }: { onResult: (text: string) => void; append?: boolean }) {
+  const [listening, setListening] = useState(false)
+
+  function startListening() {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) { alert('Voice input is not supported in this browser. Please use Chrome or Safari.'); return }
+    const recognition = new SR()
+    recognition.lang = 'en-GB'
+    recognition.interimResults = false
+    recognition.continuous = false
+    recognition.onstart = () => setListening(true)
+    recognition.onend = () => setListening(false)
+    recognition.onerror = () => setListening(false)
+    recognition.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript
+      onResult(transcript)
+    }
+    recognition.start()
+  }
+
+  return (
+    <button type="button" onClick={startListening} title="Click to speak"
+      style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', border: `1px solid ${listening ? '#e74c3c' : C.border}`, background: listening ? '#fdecea' : C.bg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, transition: 'all 0.2s', boxShadow: listening ? '0 0 0 3px #e74c3c22' : 'none' }}>
+      {listening ? '⏹' : '🎤'}
+    </button>
+  )
+}
+
 const field: React.CSSProperties = {
   width: '100%', border: `1px solid ${C.border}`, borderRadius: 6,
   padding: '8px 12px', fontSize: 14, color: C.text,
@@ -179,28 +207,40 @@ export default function GeneratePage() {
 
             <div>
               <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Topic *</label>
-              <input value={topic} onChange={e => setTopic(e.target.value)} required
-                placeholder="e.g. Workplace safety training" style={field} />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input value={topic} onChange={e => setTopic(e.target.value)} required
+                  placeholder="e.g. Workplace safety training" style={{ ...field, flex: 1 }} />
+                <MicButton onResult={t => setTopic(prev => prev ? prev + ' ' + t : t)} />
+              </div>
             </div>
 
             <div>
               <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Target audience *</label>
-              <input value={audience} onChange={e => setAudience(e.target.value)} required
-                placeholder="e.g. L&D managers in manufacturing" style={field} />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input value={audience} onChange={e => setAudience(e.target.value)} required
+                  placeholder="e.g. L&D managers in manufacturing" style={{ ...field, flex: 1 }} />
+                <MicButton onResult={t => setAudience(prev => prev ? prev + ' ' + t : t)} />
+              </div>
             </div>
 
             <div>
               <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Primary keywords *</label>
-              <input value={keywords} onChange={e => setKeywords(e.target.value)} required
-                placeholder="e.g. immersive safety training, XR" style={field} />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input value={keywords} onChange={e => setKeywords(e.target.value)} required
+                  placeholder="e.g. immersive safety training, XR" style={{ ...field, flex: 1 }} />
+                <MicButton onResult={t => setKeywords(prev => prev ? prev + ', ' + t : t)} />
+              </div>
             </div>
 
             <div style={{ height: 1, background: C.border, margin: '0 -16px' }} />
 
             <div>
               <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Additional notes</label>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)}
-                placeholder="e.g. Mention Stora Enso case study" rows={3} style={field} />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                  placeholder="e.g. Mention Stora Enso case study" rows={3} style={{ ...field, flex: 1 }} />
+                <MicButton onResult={t => setNotes(prev => prev ? prev + ' ' + t : t)} />
+              </div>
             </div>
 
             <div>
