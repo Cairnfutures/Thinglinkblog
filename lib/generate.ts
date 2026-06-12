@@ -132,9 +132,39 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
   }
 }
 
+// ─────────────────────────────────────────
+// ThingLink CTA block (inserted mid + end)
+// ─────────────────────────────────────────
+const CTA_BLOCK = `
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<div style="width:100%;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);padding:40px 48px;box-sizing:border-box;text-align:center;font-family:'Inter',sans-serif;">
+  <h3 style="font-size:22px;font-weight:600;color:#0a2540;margin:0 0 10px;line-height:1.3;font-family:inherit;">Book a free consultation</h3>
+  <p style="font-size:15px;color:#0a2540;margin:0 0 24px;max-width:480px;display:inline-block;line-height:1.6;font-family:inherit;">Find out how ThingLink can transform learning in your organisation. Speak with a specialist today.</p>
+  <br>
+  <a href="https://www.thinglink.com/demo" style="display:inline-block;background:#0a2540;color:#fff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:50px;text-decoration:none;font-family:inherit;">Book a free consultation →</a>
+</div>`
+
+function insertCTAsIntoBody(body: string): string {
+  // Find the midpoint H2 and insert there, then append at the end
+  const h2Matches = [...body.matchAll(/^## .+$/gm)]
+  let result = body
+
+  if (h2Matches.length >= 2) {
+    // Insert after the middle H2
+    const midIndex = Math.floor(h2Matches.length / 2)
+    const midMatch = h2Matches[midIndex]
+    const insertPos = midMatch.index! + midMatch[0].length
+    result = result.slice(0, insertPos) + '\n\n' + CTA_BLOCK + '\n\n' + result.slice(insertPos)
+  }
+
+  // Always append at the end
+  result = result + '\n\n' + CTA_BLOCK
+  return result
+}
+
 // Insert iframe after the second H2 heading in the body draft
 function insertEmbedIntoBody(body: string, example: MatchedExample): string {
-  const embedBlock = `\n\n> **See it in action:** ${example.name}\n\n${example.embed_code}\n\n`
+  const embedBlock = `\n\n${example.embed_code}\n\n`
   // Find the second H2 (## heading)
   let count = 0
   const insertAfter = body.replace(/^(## .+)$/gm, (match) => {
@@ -282,16 +312,17 @@ Requirements:
     throw new Error(`Failed to parse Claude response as JSON. Raw: ${rawText.slice(0, 200)}`)
   }
 
-  // 8. Insert example embed into body if we have one
+  // 8. Insert example embed and CTAs into body
   const rawBody = parsed.body_draft || ''
   const bodyWithEmbed = matchedExample ? insertEmbedIntoBody(rawBody, matchedExample) : rawBody
+  const bodyWithCTAs = insertCTAsIntoBody(bodyWithEmbed)
 
   // 9. Return structured result
   return {
     title: parsed.title || '',
     slug: parsed.slug || '',
     meta_description: parsed.meta_description || '',
-    body_draft: bodyWithEmbed,
+    body_draft: bodyWithCTAs,
     headings_plan: parsed.headings_plan || [],
     internal_link_suggestions: internalLinkSuggestions,
     cta_suggestions: parsed.cta_suggestions || [],
