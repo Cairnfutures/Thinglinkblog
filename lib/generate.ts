@@ -150,11 +150,11 @@ function insertCTAsIntoBody(body: string): string {
   let result = body
 
   if (h2Matches.length >= 2) {
-    // Insert after the middle H2
+    // Insert BEFORE the middle H2 — end of the preceding paragraph
     const midIndex = Math.floor(h2Matches.length / 2)
     const midMatch = h2Matches[midIndex]
-    const insertPos = midMatch.index! + midMatch[0].length
-    result = result.slice(0, insertPos) + '\n\n' + CTA_BLOCK + '\n\n' + result.slice(insertPos)
+    const insertPos = midMatch.index!
+    result = result.slice(0, insertPos) + CTA_BLOCK + '\n\n' + result.slice(insertPos)
   }
 
   // Always append at the end
