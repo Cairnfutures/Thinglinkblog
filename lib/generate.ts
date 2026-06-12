@@ -5,12 +5,21 @@ import { supabaseAdmin } from '@/lib/supabase'
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
+export type PostLength = 'short' | 'medium' | 'long'
+
+const LENGTH_CONFIG: Record<PostLength, { words: string; maxTokens: number }> = {
+  short:  { words: '400–600 words',   maxTokens: 3000 },
+  medium: { words: '800–1200 words',  maxTokens: 5000 },
+  long:   { words: '1500–2000 words', maxTokens: 8000 },
+}
+
 export interface GenerateInput {
   topic: string
   audience: string
   keywords: string
   notes?: string
   specificLinks?: string
+  length?: PostLength
 }
 
 export interface SourcePost {
@@ -181,7 +190,8 @@ function insertEmbedIntoBody(body: string, example: MatchedExample): string {
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateDraft(input: GenerateInput): Promise<GeneratedDraft> {
-  const { topic, audience, keywords, notes, specificLinks } = input
+  const { topic, audience, keywords, notes, specificLinks, length = 'medium' } = input
+  const { words, maxTokens } = LENGTH_CONFIG[length]
 
   // 1. Embed the query
   const queryText = `${topic} ${keywords} ${audience}`
@@ -282,7 +292,7 @@ ${contextPosts}
 Requirements:
 - Title: SEO-optimised, keyword-forward, compelling (max 70 characters)
 - Meta description: under 160 characters, primary keyword in first 60 characters
-- Body: 800–1200 words, in markdown, with H2 and H3 headings
+- Body: ${words}, in markdown, with H2 and H3 headings
 - Where you reference a case study, school, or customer example by name, you MUST have an approved URL for it. If a named example does not appear in the APPROVED LINKS list, do not mention it by name — describe it generically instead (e.g. "one UK secondary school" rather than naming the school)
 - Link to case studies using the exact URL from the APPROVED LINKS list — never construct or guess a URL
 - Suggest 3–5 CTAs using only approved URLs
@@ -294,7 +304,7 @@ Requirements:
   // 6. Call Claude
   const response = await anthropic.messages.create({
     model: GENERATION_MODEL,
-    max_tokens: MAX_TOKENS,
+    max_tokens: maxTokens,
     messages: [{ role: 'user', content: userPrompt }],
     system: systemPrompt,
   })

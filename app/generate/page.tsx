@@ -107,6 +107,7 @@ export default function GeneratePage() {
   const [similarityWarning, setSimilarityWarning] = useState('')
   const [draftId, setDraftId] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium')
 
   const htmlBody = useMemo(() => {
     if (htmlOverride !== null) return htmlOverride
@@ -134,7 +135,7 @@ export default function GeneratePage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, audience, keywords, notes, specificLinks }),
+        body: JSON.stringify({ topic, audience, keywords, notes, specificLinks, length }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Generation failed')
@@ -211,6 +212,21 @@ export default function GeneratePage() {
                 placeholder={'https://thinglink.com/blog/…\nhttps://thinglink.com/blog/…'} rows={3}
                 style={{ ...field, fontFamily: C.mono, fontSize: 11 }} />
               <p style={{ fontSize: 10, color: C.textMuted, margin: '4px 0 0' }}>One URL per line — Claude will prioritise these.</p>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 6 }}>Post length</label>
+              <div style={{ display: 'flex', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: 2, gap: 2 }}>
+                {(['short', 'medium', 'long'] as const).map(opt => (
+                  <button key={opt} type="button" onClick={() => setLength(opt)}
+                    style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: length === opt ? 500 : 400, color: length === opt ? C.text : C.textMuted, background: length === opt ? C.surface : 'transparent', border: length === opt ? `1px solid ${C.border}` : '1px solid transparent', borderRadius: 4, cursor: 'pointer', fontFamily: C.sans, textTransform: 'capitalize' }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: 10, color: C.textMuted, margin: '4px 0 0' }}>
+                {length === 'short' ? '400–600 words' : length === 'medium' ? '800–1200 words' : '1500–2000 words'}
+              </p>
             </div>
 
             <button type="submit" disabled={status === 'generating'}

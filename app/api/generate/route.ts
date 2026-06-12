@@ -7,7 +7,7 @@ export const maxDuration = 120
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { topic, audience, keywords, notes, specificLinks } = body
+    const { topic, audience, keywords, notes, specificLinks, length } = body
 
     if (!topic || !audience || !keywords) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const draft = await generateDraft({ topic, audience, keywords, notes, specificLinks })
+    const draft = await generateDraft({ topic, audience, keywords, notes, specificLinks, length })
 
     // Save to database
     const { data, error } = await supabaseAdmin
