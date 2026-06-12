@@ -243,6 +243,7 @@ THINGLINK TONE OF VOICE:
 - Posts typically open with a question, a bold statement, or a relatable challenge
 - Paragraphs are short (2–4 sentences). Uses H2 and H3 headings generously.
 - Avoid overusing em dashes (—). Use them sparingly — no more than once or twice per post. Prefer commas, full stops, or restructured sentences instead.
+- Do NOT use horizontal rules (---) anywhere in the post. Use headings to separate sections instead.
 - Includes at least one clear CTA per section pointing to ThingLink features or sign-up
 - Never makes unverified claims about ThingLink products — only states what is confirmed in the archive
 
@@ -322,8 +323,8 @@ Requirements:
     throw new Error(`Failed to parse Claude response as JSON. Raw: ${rawText.slice(0, 200)}`)
   }
 
-  // 8. Insert example embed and CTAs into body
-  const rawBody = parsed.body_draft || ''
+  // 8. Strip horizontal rules, insert example embed and CTAs into body
+  const rawBody = (parsed.body_draft || '').replace(/^---+$/gm, '').replace(/<hr\s*\/?>/gi, '')
   const bodyWithEmbed = matchedExample ? insertEmbedIntoBody(rawBody, matchedExample) : rawBody
   const bodyWithCTAs = insertCTAsIntoBody(bodyWithEmbed)
 
