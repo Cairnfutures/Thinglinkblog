@@ -47,7 +47,7 @@ interface Props {
   createdAt: string
 }
 
-type Tab = 'content' | 'html'
+type Tab = 'preview' | 'content' | 'html'
 
 export default function DraftEditor({ draft, createdAt }: Props) {
   const [title, setTitle] = useState(draft.title || '')
@@ -56,12 +56,13 @@ export default function DraftEditor({ draft, createdAt }: Props) {
   const [body, setBody] = useState(draft.body_draft || '')
   const [linkedinPost, setLinkedinPost] = useState(draft.linkedin_post || '')
   const [emailTeaser, setEmailTeaser] = useState(draft.email_teaser || '')
-  const [tab, setTab] = useState<Tab>('content')
+  const [tab, setTab] = useState<Tab>('preview')
 
   const htmlBody = useMemo(() => marked.parse(body) as string, [body])
 
   const tabs = [
-    { id: 'content' as Tab, label: 'Edit content' },
+    { id: 'preview' as Tab, label: 'Preview' },
+    { id: 'content' as Tab, label: 'Markdown' },
     { id: 'html' as Tab, label: 'HTML for WordPress' },
   ]
 
@@ -99,10 +100,14 @@ export default function DraftEditor({ draft, createdAt }: Props) {
               </button>
             ))}
           </div>
-          <CopyButton getText={() => tab === 'html' ? htmlBody : body} text={tab === 'html' ? '⎘ Copy HTML' : '⎘ Copy markdown'} />
+          {tab === 'html' && <CopyButton getText={() => htmlBody} text='⎘ Copy HTML' />}
+          {tab === 'content' && <CopyButton getText={() => body} text='⎘ Copy markdown' />}
         </div>
 
         <div style={{ marginTop: 20 }}>
+          {tab === 'preview' && (
+            <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: htmlBody }} suppressHydrationWarning />
+          )}
           {tab === 'content' && (
             <textarea value={body} onChange={e => setBody(e.target.value)} rows={30}
               style={{ ...field, fontFamily: C.mono, fontSize: 13, lineHeight: 1.7, resize: 'vertical' }} />

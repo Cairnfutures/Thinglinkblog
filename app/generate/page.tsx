@@ -86,7 +86,7 @@ export default function GeneratePage() {
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle')
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('seo')
-  const [bodyMode, setBodyMode] = useState<'markdown' | 'html'>('markdown')
+  const [bodyMode, setBodyMode] = useState<'preview' | 'markdown' | 'html'>('preview')
   const [htmlOverride, setHtmlOverride] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
@@ -355,22 +355,38 @@ export default function GeneratePage() {
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                       <div style={{ display: 'flex', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: 2, gap: 2 }}>
-                        {(['markdown', 'html'] as const).map(m => (
+                        {(['preview', 'markdown', 'html'] as const).map(m => (
                           <button key={m} onClick={() => { setBodyMode(m); if (m === 'html') setHtmlOverride(null) }}
                             style={{ padding: '4px 12px', fontSize: 11, fontWeight: bodyMode === m ? 500 : 400, color: bodyMode === m ? C.text : C.textSub, background: bodyMode === m ? C.surface : 'transparent', border: bodyMode === m ? `1px solid ${C.border}` : '1px solid transparent', borderRadius: 4, cursor: 'pointer', fontFamily: C.sans }}>
-                            {m === 'markdown' ? 'Markdown' : 'HTML'}
+                            {m === 'preview' ? 'Preview' : m === 'markdown' ? 'Markdown' : 'HTML'}
                           </button>
                         ))}
                       </div>
-                      <CopyButton getText={() => bodyMode === 'html' ? htmlBody : bodyDraft} />
+                      {bodyMode === 'html' && <CopyButton getText={() => htmlBody} />}
+                      {bodyMode === 'markdown' && <CopyButton getText={() => bodyDraft} />}
                     </div>
-                    {bodyMode === 'html' && <p style={{ fontSize: 11, color: C.textMuted, marginBottom: 10, margin: '0 0 10px' }}>HTML output — paste directly into WordPress</p>}
-                    <textarea
-                      value={bodyMode === 'markdown' ? bodyDraft : htmlBody}
-                      onChange={e => bodyMode === 'markdown' ? setBodyDraft(e.target.value) : setHtmlOverride(e.target.value)}
-                      rows={30}
-                      style={{ ...field, fontFamily: C.mono, fontSize: 11, lineHeight: 1.6, resize: 'vertical' }}
-                    />
+                    {bodyMode === 'preview' && (
+                      <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, padding: '4px 0' }} dangerouslySetInnerHTML={{ __html: htmlBody }} suppressHydrationWarning />
+                    )}
+                    {bodyMode === 'markdown' && (
+                      <textarea
+                        value={bodyDraft}
+                        onChange={e => setBodyDraft(e.target.value)}
+                        rows={30}
+                        style={{ ...field, fontFamily: C.mono, fontSize: 11, lineHeight: 1.6, resize: 'vertical' }}
+                      />
+                    )}
+                    {bodyMode === 'html' && (
+                      <>
+                        <p style={{ fontSize: 11, color: C.textMuted, margin: '0 0 10px' }}>HTML output — paste directly into WordPress</p>
+                        <textarea
+                          value={htmlOverride ?? htmlBody}
+                          onChange={e => setHtmlOverride(e.target.value)}
+                          rows={30}
+                          style={{ ...field, fontFamily: C.mono, fontSize: 11, lineHeight: 1.6, resize: 'vertical' }}
+                        />
+                      </>
+                    )
                   </div>
                 )}
 
