@@ -22,6 +22,7 @@ export default async function DraftsPage() {
 
   return (
     <div style={{ fontFamily: C.sans, background: C.bg, minHeight: '100vh' }}>
+      <style>{`.draft-row { transition: border-color 0.15s; } .draft-row:hover { border-color: ${C.accent} !important; }`}</style>
 
       {/* Top bar */}
       <div style={{ background: C.topBar, padding: '0 32px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -55,9 +56,7 @@ export default async function DraftsPage() {
 
               return (
                 <Link key={draft.id} href={`/draft/${draft.id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '16px 20px', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = C.accent)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = C.border)}>
+                  <div className="draft-row" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '16px 20px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 15, fontWeight: 500, color: C.text, margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
