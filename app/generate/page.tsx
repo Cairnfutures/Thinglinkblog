@@ -426,7 +426,7 @@ export default function GeneratePage() {
                           style={{ ...field, fontFamily: C.mono, fontSize: 11, lineHeight: 1.6, resize: 'vertical' }}
                         />
                       </>
-                    )
+                    )}
                   </div>
                 )}
 
