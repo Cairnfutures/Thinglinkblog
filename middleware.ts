@@ -23,5 +23,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/generate/:path*', '/draft/:path*'],
+  matcher: ['/(generate|draft)(.*)?'],
 }
