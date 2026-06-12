@@ -164,6 +164,7 @@ export default function GeneratePage() {
           <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>ThingLink Blog Writer <span style={{ color: '#a09af0', fontWeight: 400 }}>/ New draft</span></span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <a href="/drafts" style={{ fontSize: 12, color: '#a0a0b8', textDecoration: 'none' }}>Drafts</a>
           <a href="/ingest" style={{ fontSize: 12, color: '#a0a0b8', textDecoration: 'none' }}>Archive</a>
           <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: '#6c63ff22', color: '#a09af0', border: '1px solid #6c63ff44' }}>743 posts indexed</span>
         </div>

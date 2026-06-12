@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const PASSWORD = process.env.APP_PASSWORD || 'TL-Blog-2026!'
 const COOKIE = 'tl_auth'
 
-const PROTECTED = ['/generate', '/draft']
+const PROTECTED = ['/generate', '/draft', '/drafts']
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -23,5 +23,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/(generate|draft)(.*)?'],
+  matcher: ['/(generate|drafts|draft)(.*)?'],
 }
