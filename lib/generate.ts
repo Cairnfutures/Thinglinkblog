@@ -323,8 +323,11 @@ Requirements:
     throw new Error(`Failed to parse Claude response as JSON. Raw: ${rawText.slice(0, 200)}`)
   }
 
-  // 8. Strip horizontal rules, insert example embed and CTAs into body
-  const rawBody = (parsed.body_draft || '').replace(/^---+$/gm, '').replace(/<hr\s*\/?>/gi, '')
+  // 8. Strip horizontal rules + leading H1 title, insert example embed and CTAs into body
+  const rawBody = (parsed.body_draft || '')
+    .replace(/^---+$/gm, '')
+    .replace(/<hr\s*\/?>/gi, '')
+    .replace(/^#\s+.+\n?/, '')  // remove leading H1 (title stored separately)
   const bodyWithEmbed = matchedExample ? insertEmbedIntoBody(rawBody, matchedExample) : rawBody
   const bodyWithCTAs = insertCTAsIntoBody(bodyWithEmbed)
 
