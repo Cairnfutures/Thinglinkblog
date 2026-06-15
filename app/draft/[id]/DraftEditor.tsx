@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { marked } from 'marked'
+import { marked } from '@/lib/marked'
 
 const C = {
   bg:       '#f5f5f7',
