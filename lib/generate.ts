@@ -171,19 +171,25 @@ function insertCTAsIntoBody(body: string): string {
   return result
 }
 
-// Insert iframe after the second H2 heading in the body draft
+// Insert iframe after the first paragraph following the second H2 heading
 function insertEmbedIntoBody(body: string, example: MatchedExample): string {
-  const embedBlock = `\n\n${example.embed_code}\n\n`
-  // Find the second H2 (## heading)
-  let count = 0
-  const insertAfter = body.replace(/^(## .+)$/gm, (match) => {
-    count++
-    if (count === 2) return match + embedBlock
-    return match
-  })
-  // If there weren't 2 H2s, append at the end
-  if (count < 2) return body + embedBlock
-  return insertAfter
+  const embedBlock = `\n\nIn action! Explore this example.\n\n${example.embed_code}\n\n`
+
+  const h2Matches = [...body.matchAll(/^## .+$/gm)]
+  if (h2Matches.length < 2) return body + embedBlock
+
+  // Find position right after the second H2 line
+  const secondH2 = h2Matches[1]
+  const afterH2 = secondH2.index! + secondH2[0].length
+
+  // Find the end of the next paragraph (next blank line) after the H2
+  const rest = body.slice(afterH2)
+  const paraEndOffset = rest.search(/\n\n/)
+
+  if (paraEndOffset === -1) return body + embedBlock
+
+  const insertPos = afterH2 + paraEndOffset
+  return body.slice(0, insertPos) + embedBlock + body.slice(insertPos)
 }
 
 // ─────────────────────────────────────────
