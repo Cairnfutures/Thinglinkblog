@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { marked } from '@/lib/marked'
 
 // ── Colour tokens ──────────────────────────────────────────────
@@ -93,6 +93,11 @@ export default function GeneratePage() {
   const [draftId, setDraftId] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium')
+  const [postCount, setPostCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/post-count').then(r => r.json()).then(d => setPostCount(d.count))
+  }, [])
 
   const htmlBody = useMemo(() => {
     if (htmlOverride !== null) return htmlOverride
@@ -166,7 +171,7 @@ export default function GeneratePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <a href="/drafts" className="nav-link" style={{ fontSize: 13, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>Drafts</a>
           <a href="/ingest" className="nav-link" style={{ fontSize: 13, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>Archive</a>
-          <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(108,99,255,0.2)', color: '#c0bcff', border: '1px solid rgba(108,99,255,0.35)', fontWeight: 500 }}>743 posts indexed</div>
+          <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(108,99,255,0.2)', color: '#c0bcff', border: '1px solid rgba(108,99,255,0.35)', fontWeight: 500 }}>{postCount !== null ? `${postCount.toLocaleString()} posts indexed` : 'Loading…'}</div>
         </div>
       </div>
 
