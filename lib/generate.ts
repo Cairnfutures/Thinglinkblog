@@ -123,14 +123,22 @@ function checkFreshness(topic: string, keywords: string): { flag: boolean; reaso
 // ─────────────────────────────────────────
 // Find the best matching ThingLink example
 // ─────────────────────────────────────────
+const EXAMPLE_MIN_SIMILARITY = 0.5
+
 async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExample | null> {
   const { data, error } = await supabaseAdmin.rpc('match_examples', {
     query_embedding: queryEmbedding,
-    match_count: 1,
+    match_count: 5,
   })
   if (error || !data || data.length === 0) return null
-  const ex = data[0]
-  if (!ex.embed_code) return null
+
+  // Keep only examples with embed code and a minimum relevance threshold
+  const candidates = data.filter((ex: any) => ex.embed_code && ex.similarity >= EXAMPLE_MIN_SIMILARITY)
+  if (candidates.length === 0) return null
+
+  // Pick randomly from the qualifying candidates to avoid showing the same example every time
+  const ex = candidates[Math.floor(Math.random() * candidates.length)]
+
   return {
     name: ex.name,
     thinglink_id: ex.thinglink_id,
