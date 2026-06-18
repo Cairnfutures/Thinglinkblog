@@ -1,84 +1,48 @@
 'use client'
-
-import { useState, Suspense } from 'react'
+import { useState, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-
-const C = {
-  bg:      '#f5f5f7',
-  surface: '#ffffff',
-  border:  '#e4e4e9',
-  text:    '#111118',
-  textSub: '#6b6b80',
-  accent:  '#6c63ff',
-  topBar:  '#1a1a2e',
-  sans:    '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-}
 
 function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const next = searchParams.get('next') || '/generate'
+  const params = useSearchParams()
+  const next = params.get('next') || '/generate'
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     })
-    if (res.ok) {
-      router.push(next)
-    } else {
-      setError('Incorrect password')
-      setLoading(false)
-    }
+    if (res.ok) { router.push(next) } else { setError('Incorrect password'); setLoading(false) }
   }
 
   return (
-    <div style={{ fontFamily: C.sans, background: C.bg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: C.topBar, padding: '0 32px', height: 52, display: 'flex', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28, background: C.accent, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 700 }}>✦</div>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>ThingLink Blog Writer</span>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0f10', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ background: '#1a1a1f', border: '1px solid #2a2a35', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 380, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, margin: '0 auto 16px', background: 'linear-gradient(135deg,#6c63ff,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#fff' }}>✦</div>
+          <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.02em' }}>ThingLink Blog Writer</h1>
+          <p style={{ color: '#888', fontSize: 14, margin: 0 }}>Enter your password to continue</p>
         </div>
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '32px 36px', width: 340 }}>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: C.text, margin: '0 0 6px' }}>Sign in</h1>
-          <p style={{ fontSize: 13, color: C.textSub, margin: '0 0 24px' }}>Enter the password to continue</p>
-
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Password"
-              autoFocus
-              required
-              style={{ width: '100%', border: `1px solid ${error ? '#ffb3b3' : C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 14, color: C.text, background: C.bg, outline: 'none', boxSizing: 'border-box' as const, fontFamily: C.sans }}
-            />
-            {error && <p style={{ fontSize: 12, color: '#c0392b', margin: 0 }}>{error}</p>}
-            <button type="submit" disabled={loading}
-              style={{ width: '100%', padding: '10px 0', background: loading ? '#9990e8' : C.accent, color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: C.sans }}>
-              {loading ? 'Signing in…' : 'Sign in'}
-            </button>
-          </form>
-        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required autoFocus
+            style={{ width: '100%', padding: '12px 14px', background: '#0f0f10', border: `1px solid ${error ? '#ef4444' : '#2a2a35'}`, borderRadius: 10, color: '#fff', fontSize: 15, outline: 'none', boxSizing: 'border-box' }} />
+          {error && <p style={{ color: '#ef4444', fontSize: 13, margin: 0 }}>{error}</p>}
+          <button type="submit" disabled={loading}
+            style={{ width: '100%', padding: '12px 0', background: loading ? '#4a4a6a' : 'linear-gradient(135deg,#6c63ff,#a78bfa)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
       </div>
     </div>
   )
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
-  )
+  return <Suspense><LoginForm /></Suspense>
 }
