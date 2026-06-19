@@ -416,7 +416,13 @@ export default function GeneratePage() {
                       {bodyMode === 'markdown' && <CopyButton getText={() => bodyDraft} label='⎘ Copy markdown' />}
                     </div>
                     {bodyMode === 'preview' && (
-                      <div style={{ fontSize: 15, color: C.text, lineHeight: 1.85, padding: '4px 0' }} dangerouslySetInnerHTML={{ __html: htmlBody }} suppressHydrationWarning />
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        style={{ fontSize: 15, color: C.text, lineHeight: 1.85, padding: '4px 0', outline: 'none', minHeight: 200 }}
+                        dangerouslySetInnerHTML={{ __html: htmlBody }}
+                        onInput={e => setHtmlOverride((e.currentTarget as HTMLDivElement).innerHTML)}
+                      />
                     )}
                     {bodyMode === 'markdown' && (
                       <textarea value={bodyDraft} onChange={e => setBodyDraft(e.target.value)} rows={30}
