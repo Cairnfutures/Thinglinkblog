@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { marked } from '@/lib/marked'
 
 // ── Colour tokens ──────────────────────────────────────────────
@@ -74,6 +74,7 @@ export default function GeneratePage() {
   const [activeTab, setActiveTab] = useState<Tab>('seo')
   const [bodyMode, setBodyMode] = useState<'preview' | 'markdown' | 'html'>('preview')
   const [htmlOverride, setHtmlOverride] = useState<string | null>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
 
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
@@ -146,6 +147,13 @@ export default function GeneratePage() {
 
   const lengthLabels = { short: '400–600 words', medium: '800–1200 words', long: '1500–2000 words' }
 
+
+  // Sync generated HTML into editable preview without re-render flicker
+  useEffect(() => {
+    if (previewRef.current && !htmlOverride) {
+      previewRef.current.innerHTML = htmlBody
+    }
+  }, [htmlBody])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: C.sans, background: C.bg, margin: 0 }}>
       <style>{`
@@ -417,10 +425,10 @@ export default function GeneratePage() {
                     </div>
                     {bodyMode === 'preview' && (
                       <div
+                        ref={previewRef}
                         contentEditable
                         suppressContentEditableWarning
                         style={{ fontSize: 15, color: C.text, lineHeight: 1.85, padding: '4px 0', outline: 'none', minHeight: 200 }}
-                        dangerouslySetInnerHTML={{ __html: htmlBody }}
                         onInput={e => setHtmlOverride((e.currentTarget as HTMLDivElement).innerHTML)}
                       />
                     )}
