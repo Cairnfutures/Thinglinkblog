@@ -61,12 +61,20 @@ export interface GeneratedDraft {
 // Retrieve similar posts via vector search
 // ─────────────────────────────────────────
 async function retrieveSimilarPosts(queryEmbedding: number[], topK = 8) {
-  const { data, error } = await supabaseAdmin.rpc('match_posts', {
-    query_embedding: queryEmbedding,
-    match_count: topK,
-  })
-  if (error) throw error
-  return data as { id: string; title: string; url: string; body_text: string; headings: any; similarity: number }[]
+  try {
+    const { data, error } = await supabaseAdmin.rpc('match_posts', {
+      query_embedding: queryEmbedding,
+      match_count: topK,
+    })
+    if (error) {
+      console.warn('match_posts RPC error (continuing without vector search):', error.message)
+      return []
+    }
+    return (data || []) as { id: string; title: string; url: string; body_text: string; headings: any; similarity: number }[]
+  } catch (err: any) {
+    console.warn('retrieveSimilarPosts failed (continuing without vector search):', err.message)
+    return []
+  }
 }
 
 // ─────────────────────────────────────────
@@ -88,12 +96,16 @@ async function searchPostsByKeywords(keywords: string): Promise<{ id: string; ti
 // Check for near-duplicate posts
 // ─────────────────────────────────────────
 async function checkForDuplicate(queryEmbedding: number[]): Promise<string> {
-  const { data } = await supabaseAdmin.rpc('match_posts', {
-    query_embedding: queryEmbedding,
-    match_count: 1,
-  })
-  if (data && data[0] && data[0].similarity > 0.92) {
-    return data[0].title
+  try {
+    const { data } = await supabaseAdmin.rpc('match_posts', {
+      query_embedding: queryEmbedding,
+      match_count: 1,
+    })
+    if (data && data[0] && data[0].similarity > 0.92) {
+      return data[0].title
+    }
+  } catch {
+    // Ignore — duplicate check is best-effort
   }
   return ''
 }
@@ -126,6 +138,7 @@ function checkFreshness(topic: string, keywords: string): { flag: boolean; reaso
 const EXAMPLE_MIN_SIMILARITY = 0.5
 
 async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExample | null> {
+  try {
   const { data, error } = await supabaseAdmin.rpc('match_examples', {
     query_embedding: queryEmbedding,
     match_count: 5,
@@ -146,6 +159,10 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
     project_type: ex.project_type || '',
     industry: ex.industry || '',
     similarity: ex.similarity,
+  }
+  } catch (err: any) {
+    console.warn('findMatchingExample failed (continuing without example):', err.message)
+    return null
   }
 }
 
@@ -207,16 +224,21 @@ export async function generateDraft(input: GenerateInput): Promise<GeneratedDraf
   const { topic, audience, keywords, notes, specificLinks, length = 'medium' } = input
   const { words, maxTokens } = LENGTH_CONFIG[length]
 
-  // 1. Embed the query
+  // 1. Embed the query (gracefully skip if OpenAI key missing)
   const queryText = `${topic} ${keywords} ${audience}`
-  const queryEmbedding = await embed(queryText)
+  let queryEmbedding: number[] = []
+  try {
+    queryEmbedding = await embed(queryText)
+  } catch (err: any) {
+    console.warn('Embedding failed (continuing without vector search):', err.message)
+  }
 
   // 2. Retrieve similar posts + check for duplicates + find matching example
   const [similarPosts, duplicateTitle, freshnessCheck, matchedExample, keywordPosts] = await Promise.all([
-    retrieveSimilarPosts(queryEmbedding, 12),
-    checkForDuplicate(queryEmbedding),
+    queryEmbedding.length ? retrieveSimilarPosts(queryEmbedding, 12) : Promise.resolve([]),
+    queryEmbedding.length ? checkForDuplicate(queryEmbedding) : Promise.resolve(''),
     Promise.resolve(checkFreshness(topic, keywords)),
-    findMatchingExample(queryEmbedding),
+    queryEmbedding.length ? findMatchingExample(queryEmbedding) : Promise.resolve(null),
     searchPostsByKeywords(`${topic} ${keywords}`),
   ])
 

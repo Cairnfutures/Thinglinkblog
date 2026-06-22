@@ -18,37 +18,42 @@ export async function POST(req: NextRequest) {
 
     const draft = await generateDraft({ topic, audience, keywords, notes, specificLinks, length })
 
-    // Save to database
-    const { data, error } = await supabaseAdmin
-      .from('generated_drafts')
-      .insert({
-        input_topic: topic,
-        input_audience: audience,
-        input_keywords: keywords,
-        input_notes: notes || null,
-        source_post_ids: draft.source_posts.map(p => p.id),
-        title: draft.title,
-        slug: draft.slug,
-        meta_description: draft.meta_description,
-        body_draft: draft.body_draft,
-        headings_plan: draft.headings_plan,
-        internal_link_suggestions: draft.internal_link_suggestions,
-        cta_suggestions: draft.cta_suggestions,
-        image_suggestions: draft.image_suggestions,
-        accessibility_notes: draft.accessibility_notes,
-        linkedin_post: draft.linkedin_post,
-        email_teaser: draft.email_teaser,
-        freshness_flag: draft.freshness_flag,
-        freshness_reason: draft.freshness_reason,
-        similarity_warning: draft.similarity_warning,
-        status: 'draft',
-      })
-      .select('id')
-      .single()
+    // Save to database (best-effort — don't fail the response if DB insert fails)
+    let draftId: string | null = null
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('generated_drafts')
+        .insert({
+          input_topic: topic,
+          input_audience: audience,
+          input_keywords: keywords,
+          input_notes: notes || null,
+          source_post_ids: draft.source_posts.map(p => p.id),
+          title: draft.title,
+          slug: draft.slug,
+          meta_description: draft.meta_description,
+          body_draft: draft.body_draft,
+          headings_plan: draft.headings_plan,
+          internal_link_suggestions: draft.internal_link_suggestions,
+          cta_suggestions: draft.cta_suggestions,
+          image_suggestions: draft.image_suggestions,
+          accessibility_notes: draft.accessibility_notes,
+          linkedin_post: draft.linkedin_post,
+          email_teaser: draft.email_teaser,
+          freshness_flag: draft.freshness_flag,
+          freshness_reason: draft.freshness_reason,
+          similarity_warning: draft.similarity_warning,
+          status: 'draft',
+        })
+        .select('id')
+        .single()
+      if (!error && data) draftId = data.id
+      if (error) console.warn('Draft save failed (non-fatal):', error.message)
+    } catch (saveErr: any) {
+      console.warn('Draft save exception (non-fatal):', saveErr.message)
+    }
 
-    if (error) throw error
-
-    return NextResponse.json({ success: true, draftId: data.id, draft })
+    return NextResponse.json({ success: true, draftId, draft })
   } catch (err: any) {
     console.error('Generation failed:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
