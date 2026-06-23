@@ -139,38 +139,59 @@ const EXAMPLE_MIN_SIMILARITY = 0.5
 
 async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExample | null> {
   try {
-  const { data, error } = await supabaseAdmin.rpc('match_examples', {
-    query_embedding: queryEmbedding,
-    match_count: 5,
-  })
-  if (error || !data || data.length === 0) return null
+    // Try vector search first
+    const { data, error } = await supabaseAdmin.rpc('match_examples', {
+      query_embedding: queryEmbedding,
+      match_count: 5,
+    })
 
-  // Normalise embed_code — column may be named embed-code or embed_code
-  const normalised = data.map((ex: any) => ({
-    ...ex,
-    embed_code: ex.embed_code ?? ex['embed-code'] ?? null,
-  }))
+    if (!error && data && data.length > 0) {
+      const normalised = data.map((ex: any) => ({
+        ...ex,
+        embed_code: ex.embed_code ?? ex['embed-code'] ?? null,
+      }))
+      const withEmbed = normalised.filter((ex: any) => ex.embed_code)
+      if (withEmbed.length > 0) {
+        const candidates = withEmbed.filter((ex: any) => ex.similarity >= EXAMPLE_MIN_SIMILARITY)
+        const pool = candidates.length > 0 ? candidates : withEmbed
+        const ex = pool[Math.floor(Math.random() * pool.length)]
+        return {
+          name: ex.name,
+          thinglink_id: ex.thinglink_id,
+          embed_code: ex.embed_code,
+          project_type: ex.project_type || '',
+          industry: ex.industry || '',
+          similarity: ex.similarity,
+        }
+      }
+    }
 
-  // Prefer high-similarity matches; fall back to any example with embed code
-  const withEmbed = normalised.filter((ex: any) => ex.embed_code)
-  if (withEmbed.length === 0) return null
+    // Fall back to direct table query (works even without embedding column)
+    console.warn('match_examples RPC unavailable, falling back to direct table query')
+    const { data: rows } = await supabaseAdmin
+      .from('examples')
+      .select('*')
+      .limit(50)
 
-  const candidates = withEmbed.filter((ex: any) => ex.similarity >= EXAMPLE_MIN_SIMILARITY)
-  const pool = candidates.length > 0 ? candidates : withEmbed
+    if (!rows || rows.length === 0) return null
 
-  // Pick randomly from the pool
-  const ex = pool[Math.floor(Math.random() * pool.length)]
+    const withEmbed = rows
+      .map((ex: any) => ({ ...ex, embed_code: ex.embed_code ?? ex['embed-code'] ?? null }))
+      .filter((ex: any) => ex.embed_code)
 
-  return {
-    name: ex.name,
-    thinglink_id: ex.thinglink_id,
-    embed_code: ex.embed_code,
-    project_type: ex.project_type || '',
-    industry: ex.industry || '',
-    similarity: ex.similarity,
-  }
+    if (withEmbed.length === 0) return null
+
+    const ex = withEmbed[Math.floor(Math.random() * withEmbed.length)]
+    return {
+      name: ex.name,
+      thinglink_id: ex.thinglink_id ?? '',
+      embed_code: ex.embed_code,
+      project_type: ex.project_type || '',
+      industry: ex.industry || '',
+      similarity: 0,
+    }
   } catch (err: any) {
-    console.warn('findMatchingExample failed (continuing without example):', err.message)
+    console.warn('findMatchingExample failed:', err.message)
     return null
   }
 }
