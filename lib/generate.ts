@@ -145,8 +145,14 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
   })
   if (error || !data || data.length === 0) return null
 
+  // Normalise embed_code — column may be named embed-code or embed_code
+  const normalised = data.map((ex: any) => ({
+    ...ex,
+    embed_code: ex.embed_code ?? ex['embed-code'] ?? null,
+  }))
+
   // Prefer high-similarity matches; fall back to any example with embed code
-  const withEmbed = data.filter((ex: any) => ex.embed_code)
+  const withEmbed = normalised.filter((ex: any) => ex.embed_code)
   if (withEmbed.length === 0) return null
 
   const candidates = withEmbed.filter((ex: any) => ex.similarity >= EXAMPLE_MIN_SIMILARITY)
