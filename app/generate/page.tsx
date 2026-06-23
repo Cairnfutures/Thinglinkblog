@@ -149,11 +149,12 @@ export default function GeneratePage() {
 
 
   // Sync generated HTML into editable preview without re-render flicker
+  // Also re-runs when tab/mode changes so the div is mounted before we write to it
   useEffect(() => {
     if (previewRef.current && !htmlOverride) {
       previewRef.current.innerHTML = htmlBody
     }
-  }, [htmlBody])
+  }, [htmlBody, activeTab, bodyMode])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: C.sans, background: C.bg, margin: 0 }}>
       <style>{`
