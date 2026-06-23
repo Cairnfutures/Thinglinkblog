@@ -20,6 +20,7 @@ export interface GenerateInput {
   notes?: string
   specificLinks?: string
   length?: PostLength
+  existingContent?: string
 }
 
 export interface SourcePost {
@@ -251,7 +252,7 @@ function insertEmbedIntoBody(body: string, example: MatchedExample): string {
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateDraft(input: GenerateInput): Promise<GeneratedDraft> {
-  const { topic, audience, keywords, notes, specificLinks, length = 'medium' } = input
+  const { topic, audience, keywords, notes, specificLinks, length = 'medium', existingContent } = input
   const { words, maxTokens } = LENGTH_CONFIG[length]
 
   // 1. Embed the query (gracefully skip if OpenAI key missing)
@@ -343,7 +344,37 @@ OUTPUT FORMAT: Respond with a single valid JSON object. No markdown, no code fen
   const archiveLinks = mergedPosts.map(p => `- ${p.title}: ${p.url}`)
   const approvedLinks = [...userSuppliedLinks, ...archiveLinks].join('\n')
 
-  const userPrompt = `Write a ThingLink blog post on the following brief:
+  const userPrompt = existingContent
+    ? `You have been given an existing blog post written by another team member. Your job is to enhance it into a polished ThingLink blog post:
+
+TOPIC: ${topic}
+TARGET AUDIENCE: ${audience}
+PRIMARY KEYWORDS: ${keywords}
+ADDITIONAL NOTES: ${notes || 'None'}
+
+EXISTING CONTENT TO ENHANCE:
+${existingContent}
+
+APPROVED LINKS (you may ONLY use these URLs when linking in the body or CTAs — do not invent any other URLs):
+${approvedLinks}
+
+REFERENCE POSTS FROM THE THINGLINK ARCHIVE (use these to inform tone and style):
+${contextPosts}
+
+Enhancement requirements:
+- Keep the core content, structure, and any SEO terms from the existing post
+- Rewrite to match ThingLink's tone of voice (confident, practical, second-person "you")
+- Weave in internal links from the APPROVED LINKS list where relevant — naturally, not forced
+- Tighten paragraphs to 2–4 sentences each
+- Ensure H2 and H3 headings are clear and keyword-forward
+- Remove any horizontal rules (---) — use headings instead
+- Suggest 3–5 CTAs using only approved URLs
+- Suggest 3 image/visual ideas
+- Suggest any accessibility considerations relevant to the topic
+- Write a 150-word LinkedIn post to promote this article
+- Write a 3-sentence email teaser (subject line + preview text)
+- Generate an SEO-optimised title (max 70 chars), slug, and meta description (under 160 chars)`
+    : `Write a ThingLink blog post on the following brief:
 
 TOPIC: ${topic}
 TARGET AUDIENCE: ${audience}

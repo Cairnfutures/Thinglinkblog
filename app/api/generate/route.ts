@@ -7,7 +7,7 @@ export const maxDuration = 120
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { topic, audience, keywords, notes, specificLinks, length } = body
+    const { topic, audience, keywords, notes, specificLinks, length, existingContent } = body
 
     if (!topic || !audience || !keywords) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const draft = await generateDraft({ topic, audience, keywords, notes, specificLinks, length })
+    const draft = await generateDraft({ topic, audience, keywords, notes, specificLinks, length, existingContent })
 
     // Save to database (best-effort — don't fail the response if DB insert fails)
     let draftId: string | null = null

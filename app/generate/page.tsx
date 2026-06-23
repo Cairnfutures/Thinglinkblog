@@ -68,6 +68,7 @@ export default function GeneratePage() {
   const [keywords, setKeywords] = useState('')
   const [notes, setNotes] = useState('')
   const [specificLinks, setSpecificLinks] = useState('')
+  const [existingContent, setExistingContent] = useState('')
 
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -126,7 +127,7 @@ export default function GeneratePage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, audience, keywords, notes, specificLinks, length }),
+        body: JSON.stringify({ topic, audience, keywords, notes, specificLinks, length, existingContent }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Generation failed')
@@ -222,6 +223,13 @@ export default function GeneratePage() {
               <label style={{ fontSize: 14, fontWeight: 500, color: C.textSub, display: 'block', marginBottom: 6 }}>Additional notes</label>
               <textarea value={notes} onChange={e => setNotes(e.target.value)}
                 placeholder="e.g. Mention Stora Enso case study" rows={3} style={field} />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 14, fontWeight: 500, color: C.textSub, display: 'block', marginBottom: 6 }}>Existing content <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 400 }}>(optional — paste a draft to enhance)</span></label>
+              <textarea value={existingContent} onChange={e => setExistingContent(e.target.value)}
+                placeholder={'Paste an existing blog post here and the generator will enhance it with ThingLink style, internal links, CTAs, and examples instead of writing from scratch.'}
+                rows={5} style={field} />
             </div>
 
             <div>
