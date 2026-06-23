@@ -145,12 +145,15 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
   })
   if (error || !data || data.length === 0) return null
 
-  // Keep only examples with embed code and a minimum relevance threshold
-  const candidates = data.filter((ex: any) => ex.embed_code && ex.similarity >= EXAMPLE_MIN_SIMILARITY)
-  if (candidates.length === 0) return null
+  // Prefer high-similarity matches; fall back to any example with embed code
+  const withEmbed = data.filter((ex: any) => ex.embed_code)
+  if (withEmbed.length === 0) return null
 
-  // Pick randomly from the qualifying candidates to avoid showing the same example every time
-  const ex = candidates[Math.floor(Math.random() * candidates.length)]
+  const candidates = withEmbed.filter((ex: any) => ex.similarity >= EXAMPLE_MIN_SIMILARITY)
+  const pool = candidates.length > 0 ? candidates : withEmbed
+
+  // Pick randomly from the pool
+  const ex = pool[Math.floor(Math.random() * pool.length)]
 
   return {
     name: ex.name,
