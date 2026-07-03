@@ -309,7 +309,7 @@ THINGLINK TONE OF VOICE:
 - SEO-aware — keywords appear naturally in headings and opening paragraphs
 - Posts typically open with a question, a bold statement, or a relatable challenge
 - Paragraphs are short (2–4 sentences). Uses H2 and H3 headings generously.
-- Avoid overusing em dashes (—). Use them sparingly — no more than once or twice per post. Prefer commas, full stops, or restructured sentences instead.
+- Do NOT use em dashes (—) or en dashes (–) anywhere in the post. Never use a hyphen as a sentence connector (e.g. "word - word"). Use commas, colons, or rewrite the sentence instead.
 - Do NOT use horizontal rules (---) anywhere in the post. Use headings to separate sections instead.
 - Includes at least one clear CTA per section pointing to ThingLink features or sign-up
 - Never makes unverified claims about ThingLink products — only states what is confirmed in the archive
@@ -425,6 +425,11 @@ Requirements:
     .replace(/^---+$/gm, '')
     .replace(/<hr\s*\/?>/gi, '')
     .replace(/^#\s+.+\n?/, '')  // remove leading H1 (title stored separately)
+    .replace(/\s—\s/g, ', ')    // em dash surrounded by spaces → comma
+    .replace(/—/g, ', ')        // remaining em dashes
+    .replace(/\s–\s/g, ', ')    // en dash surrounded by spaces → comma
+    .replace(/–/g, ', ')        // remaining en dashes
+    .replace(/ - /g, ', ')      // spaced hyphens used as dashes → comma
   const bodyWithEmbed = matchedExample ? insertEmbedIntoBody(rawBody, matchedExample) : rawBody
   const bodyWithCTAs = insertCTAsIntoBody(bodyWithEmbed)
 
