@@ -5,7 +5,7 @@
 
 import path from 'path'
 import * as dotenv from 'dotenv'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 
 dotenv.config({ path: path.join(process.cwd(), '.env.local') })
@@ -14,15 +14,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
 
 async function embed(text: string): Promise<number[]> {
-  const res = await anthropic.embeddings.create({
-    model: 'voyage-3',
-    input: text,
-    encoding_format: 'float',
-  } as any)
-  return (res as any).data[0].embedding
+  const res = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: text.slice(0, 8000),
+  })
+  return res.data[0].embedding
 }
 
 async function main() {

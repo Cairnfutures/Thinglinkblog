@@ -9,7 +9,7 @@ create table if not exists support_articles (
   url           text not null,
   section       text,
   body_text     text,
-  embedding     vector(1024),
+  embedding     vector(1536),
   updated_at    timestamptz,
   created_at    timestamptz default now()
 );

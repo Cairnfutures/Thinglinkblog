@@ -365,12 +365,13 @@ OUTPUT FORMAT: Respond with a single valid JSON object. No markdown, no code fen
   "email_teaser": "string"
 }`
 
-  // Build approved links list — user-supplied links take priority, then merged posts
+  // Build approved links list — user-supplied links take priority, then merged posts, then support articles
   const userSuppliedLinks = specificLinks
     ? specificLinks.split('\n').map(l => l.trim()).filter(l => l.startsWith('http')).map(l => `- (user-supplied): ${l}`)
     : []
   const archiveLinks = mergedPosts.map(p => `- ${p.title}: ${p.url}`)
-  const approvedLinks = [...userSuppliedLinks, ...archiveLinks].join('\n')
+  const supportLinks = supportArticles.map(a => `- (support article) ${a.title}: ${a.url}`)
+  const approvedLinks = [...userSuppliedLinks, ...archiveLinks, ...supportLinks].join('\n')
 
   const userPrompt = existingContent
     ? `You have been given an existing blog post written by another team member. Your job is to enhance it into a polished ThingLink blog post:
@@ -394,6 +395,7 @@ Enhancement requirements:
 - Keep the core content, structure, and any SEO terms from the existing post
 - Rewrite to match ThingLink's tone of voice (confident, practical, second-person "you")
 - Weave in internal links from the APPROVED LINKS list where relevant — naturally, not forced
+- Where you explain a ThingLink feature or how-to step, link to the relevant support article from the APPROVED LINKS list (marked "support article") — use these as "learn more" or "step-by-step guide" links, not as CTAs
 - Tighten paragraphs to 2–4 sentences each
 - Ensure H2 and H3 headings are clear and keyword-forward
 - Remove any horizontal rules (---) — use headings instead
@@ -423,6 +425,7 @@ Requirements:
 - Body: ${words}, in markdown, with H2 and H3 headings
 - Where you reference a case study, school, or customer example by name, you MUST have an approved URL for it. If a named example does not appear in the APPROVED LINKS list, do not mention it by name — describe it generically instead (e.g. "one UK secondary school" rather than naming the school)
 - Link to case studies using the exact URL from the APPROVED LINKS list — never construct or guess a URL
+- Where you explain a ThingLink feature or how-to step, link naturally to the relevant support article from the APPROVED LINKS list (marked "support article") as a "learn more" or "step-by-step guide" link
 - Suggest 3–5 CTAs using only approved URLs
 - Suggest 3 image/visual ideas
 - Suggest any accessibility considerations relevant to the topic
