@@ -39,7 +39,7 @@ async function fetchAllArticles() {
   let url: string | null = `${ZENDESK_BASE}/articles.json?per_page=100&sort_by=updated_at&sort_order=desc`
 
   while (url) {
-    const res = await fetch(url)
+    const res: Response = await fetch(url)
     if (!res.ok) throw new Error(`Zendesk API error: ${res.status} ${res.statusText}`)
     const json = await res.json()
     articles.push(...json.articles)
@@ -53,7 +53,7 @@ async function fetchSections(): Promise<Map<number, string>> {
   const sections = new Map<number, string>()
   let url: string | null = `${ZENDESK_BASE}/sections.json?per_page=100`
   while (url) {
-    const res = await fetch(url)
+    const res: Response = await fetch(url)
     const json = await res.json()
     for (const s of json.sections || []) sections.set(s.id, s.name)
     url = json.next_page ?? null
