@@ -59,6 +59,26 @@ export interface GeneratedDraft {
 }
 
 // ─────────────────────────────────────────
+// Retrieve similar support articles via vector search
+// ─────────────────────────────────────────
+async function retrieveSimilarSupportArticles(queryEmbedding: number[], topK = 4) {
+  try {
+    const { data, error } = await supabaseAdmin.rpc('match_support_articles', {
+      query_embedding: queryEmbedding,
+      match_count: topK,
+    })
+    if (error) {
+      console.warn('match_support_articles RPC error (continuing without support articles):', error.message)
+      return []
+    }
+    return (data || []) as { id: string; title: string; url: string; section: string; body_text: string; similarity: number }[]
+  } catch (err: any) {
+    console.warn('retrieveSimilarSupportArticles failed:', err.message)
+    return []
+  }
+}
+
+// ─────────────────────────────────────────
 // Retrieve similar posts via vector search
 // ─────────────────────────────────────────
 async function retrieveSimilarPosts(queryEmbedding: number[], topK = 8) {
@@ -264,9 +284,10 @@ export async function generateDraft(input: GenerateInput): Promise<GeneratedDraf
     console.warn('Embedding failed (continuing without vector search):', err.message)
   }
 
-  // 2. Retrieve similar posts + check for duplicates + find matching example
-  const [similarPosts, duplicateTitle, freshnessCheck, matchedExample, keywordPosts] = await Promise.all([
+  // 2. Retrieve similar posts + support articles + check for duplicates + find matching example
+  const [similarPosts, supportArticles, duplicateTitle, freshnessCheck, matchedExample, keywordPosts] = await Promise.all([
     queryEmbedding.length ? retrieveSimilarPosts(queryEmbedding, 12) : Promise.resolve([]),
+    queryEmbedding.length ? retrieveSimilarSupportArticles(queryEmbedding, 4) : Promise.resolve([]),
     queryEmbedding.length ? checkForDuplicate(queryEmbedding) : Promise.resolve(''),
     Promise.resolve(checkFreshness(topic, keywords)),
     queryEmbedding.length ? findMatchingExample(queryEmbedding) : Promise.resolve(null),
@@ -287,6 +308,13 @@ export async function generateDraft(input: GenerateInput): Promise<GeneratedDraf
       : ''
     return `---\nTITLE: ${p.title}\nURL: ${p.url}\nHEADINGS:\n${headings}\nCONTENT EXCERPT:\n${p.body_text?.slice(0, 800) || ''}\n---`
   }).join('\n\n')
+
+  // 3b. Build context from support articles
+  const contextSupport = supportArticles.length > 0
+    ? supportArticles.map(a =>
+        `---\nSUPPORT ARTICLE: ${a.title}\nSECTION: ${a.section}\nURL: ${a.url}\nCONTENT:\n${a.body_text?.slice(0, 600) || ''}\n---`
+      ).join('\n\n')
+    : ''
 
   // 4. Internal link suggestions from merged posts
   const internalLinkSuggestions = mergedPosts.slice(0, 8).map(p => ({
@@ -360,6 +388,7 @@ ${approvedLinks}
 
 REFERENCE POSTS FROM THE THINGLINK ARCHIVE (use these to inform tone and style):
 ${contextPosts}
+${contextSupport ? `\nRELEVANT SUPPORT ARTICLES (accurate product feature detail — use to ensure technical accuracy):\n${contextSupport}` : ''}
 
 Enhancement requirements:
 - Keep the core content, structure, and any SEO terms from the existing post
@@ -386,6 +415,7 @@ ${approvedLinks}
 
 REFERENCE POSTS FROM THE THINGLINK ARCHIVE (use these to inform tone, structure, and content — do not copy them):
 ${contextPosts}
+${contextSupport ? `\nRELEVANT SUPPORT ARTICLES (accurate product feature detail — use to ensure technical accuracy, do not copy verbatim):\n${contextSupport}` : ''}
 
 Requirements:
 - Title: SEO-optimised, keyword-forward, compelling (max 70 characters)
