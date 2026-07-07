@@ -14,6 +14,8 @@ const C = {
   grad:     'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function DraftsPage() {
   const { data: drafts } = await supabaseAdmin
     .from('generated_drafts')
