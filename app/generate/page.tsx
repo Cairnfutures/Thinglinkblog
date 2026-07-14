@@ -97,10 +97,12 @@ export default function GeneratePage() {
   const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium')
   const [postCount, setPostCount] = useState<number | null>(null)
   const [supportCount, setSupportCount] = useState<number | null>(null)
+  const [examplesCount, setExamplesCount] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/post-count').then(r => r.json()).then(d => setPostCount(d.count))
     fetch('/api/support-count').then(r => r.json()).then(d => setSupportCount(d.count))
+    fetch('/api/examples-count').then(r => r.json()).then(d => setExamplesCount(d.count))
   }, [])
 
   const htmlBody = useMemo(() => {
@@ -184,8 +186,9 @@ export default function GeneratePage() {
           <a href="/drafts" className="nav-link" style={{ fontSize: 13, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>Drafts</a>
           <a href="/ingest" className="nav-link" style={{ fontSize: 13, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>Archive</a>
           <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(108,99,255,0.2)', color: '#c0bcff', border: '1px solid rgba(108,99,255,0.35)', fontWeight: 500 }}>{postCount !== null ? `${postCount.toLocaleString()} posts` : 'Loading…'}</div>
+            <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(108,99,255,0.2)', color: '#c0bcff', border: '1px solid rgba(108,99,255,0.35)', fontWeight: 500 }}>{postCount !== null ? `${postCount.toLocaleString()} posts` : '…'}</div>
             <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(92,232,212,0.15)', color: '#5CE8D4', border: '1px solid rgba(92,232,212,0.3)', fontWeight: 500 }}>{supportCount !== null ? `${supportCount.toLocaleString()} support articles` : '…'}</div>
+            <div style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(255,179,71,0.15)', color: '#FFB347', border: '1px solid rgba(255,179,71,0.3)', fontWeight: 500 }}>{examplesCount !== null ? `${examplesCount.toLocaleString()} examples` : '…'}</div>
           </div>
         </div>
       </div>
