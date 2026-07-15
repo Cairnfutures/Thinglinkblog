@@ -156,14 +156,16 @@ function checkFreshness(topic: string, keywords: string): { flag: boolean; reaso
 // ─────────────────────────────────────────
 // Find the best matching ThingLink example
 // ─────────────────────────────────────────
-const EXAMPLE_MIN_SIMILARITY = 0.5
+// Known-generic examples to exclude from automatic selection
+const EXCLUDED_THINGLINK_IDS = new Set(['1155071999786090499'])
+const EXAMPLE_MIN_SIMILARITY = 0.55
 
 async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExample | null> {
   try {
-    // Try vector search first
+    // Try vector search first — request plenty of candidates so exclusions don't exhaust the pool
     const { data, error } = await supabaseAdmin.rpc('match_examples', {
       query_embedding: queryEmbedding,
-      match_count: 5,
+      match_count: 20,
     })
 
     if (!error && data && data.length > 0) {
@@ -171,11 +173,21 @@ async function findMatchingExample(queryEmbedding: number[]): Promise<MatchedExa
         ...ex,
         embed_code: ex.embed_code ?? ex['embed-code'] ?? null,
       }))
-      const withEmbed = normalised.filter((ex: any) => ex.embed_code)
-      if (withEmbed.length > 0) {
-        const candidates = withEmbed.filter((ex: any) => ex.similarity >= EXAMPLE_MIN_SIMILARITY)
-        const pool = candidates.length > 0 ? candidates : withEmbed
-        const ex = pool[Math.floor(Math.random() * pool.length)]
+      // Filter: must have embed code, meet similarity threshold, not in exclusion list
+      const candidates = normalised.filter((ex: any) =>
+        ex.embed_code &&
+        ex.similarity >= EXAMPLE_MIN_SIMILARITY &&
+        !EXCLUDED_THINGLINK_IDS.has(String(ex.thinglink_id))
+      )
+      // Fall back to any with embed code if no candidates meet threshold
+      const pool = candidates.length > 0
+        ? candidates
+        : normalised.filter((ex: any) => ex.embed_code && !EXCLUDED_THINGLINK_IDS.has(String(ex.thinglink_id)))
+
+      if (pool.length > 0) {
+        // Pick the best match (highest similarity) — results are already sorted by RPC
+        const ex = pool[0]
+        console.log(`Matched example: "${ex.name}" (similarity: ${ex.similarity?.toFixed(3)})`)
         return {
           name: ex.name,
           thinglink_id: ex.thinglink_id,
