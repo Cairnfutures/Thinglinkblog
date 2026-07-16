@@ -16,7 +16,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function buildEmbedCode(thinglinkId: string): string {
+function buildEmbedCode(thinglinkId: string, url: string): string {
+  const isScenario = url?.includes('/view/scenario/') || url?.includes('scenario')
+  if (isScenario) {
+    return `<iframe width="960" height="720" src="https://www.thinglink.com/view/scenario/${thinglinkId}" type="text/html" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen scrolling="no"></iframe><script async src="//cdn.thinglink.me/jse/responsive.js"></script>`
+  }
   return `<iframe width="960" height="540" data-original-width="960" data-original-height="540" src="https://www.thinglink.com/card/${thinglinkId}" type="text/html" frameborder="0" allowfullscreen allow="fullscreen; xr-spatial-tracking;"></iframe>`
 }
 
@@ -25,19 +29,19 @@ async function main() {
 
   const { data: rows, error } = await supabase
     .from('examples')
-    .select('id, name, thinglink_id')
-    .is('embed_code', null)
+    .select('id, name, thinglink_id, url')
     .not('thinglink_id', 'is', null)
 
   if (error) { console.error('Failed to fetch rows:', error.message); process.exit(1) }
   if (!rows || rows.length === 0) { console.log('No rows need restoring.'); return }
 
-  console.log(`${rows.length} rows with missing embed_code\n`)
+  console.log(`${rows.length} rows to process\n`)
 
   let restored = 0, errors = 0
 
   for (const row of rows) {
-    const embed_code = buildEmbedCode(row.thinglink_id)
+    const isScenario = row.url?.includes('scenario')
+    const embed_code = buildEmbedCode(row.thinglink_id, row.url || '')
     const { error: updateErr } = await supabase
       .from('examples')
       .update({ embed_code })
@@ -47,7 +51,7 @@ async function main() {
       console.error(`  ✗ ${row.name}: ${updateErr.message}`)
       errors++
     } else {
-      console.log(`  ✓ ${row.name}`)
+      console.log(`  ✓ ${isScenario ? '[scenario] ' : ''}${row.name}`)
       restored++
     }
   }
