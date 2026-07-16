@@ -17,7 +17,7 @@ const supabase = createClient(
 )
 
 function buildEmbedCode(thinglinkId: string, url: string): string {
-  const isScenario = url?.includes('/view/scenario/') || url?.includes('scenario')
+  const isScenario = url?.includes('/view/scenario/') || url?.includes('/coursecard/') || url?.includes('scenario')
   if (isScenario) {
     return `<iframe width="960" height="720" src="https://www.thinglink.com/view/scenario/${thinglinkId}" type="text/html" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen scrolling="no"></iframe><script async src="//cdn.thinglink.me/jse/responsive.js"></script>`
   }
