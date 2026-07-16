@@ -96,6 +96,7 @@ async function main() {
       media_types:  csvRow['Media Types'] || '',
       project_type: csvRow['Project Type'] || '',
       industry:     csvRow['Industry'] || '',
+      url:          csvRow['URL'] || csvRow['url'] || '',
       thinglink_id: id,
     }
     if (dbIds.has(id)) {
